@@ -1,0 +1,265 @@
+import fonts.fontAwesome;
+import win.ui;
+/*DSG{{*/
+var frmConfig = win.form(text="aardio form";right=912;bottom=793;bgcolor=16777215)
+frmConfig.add(
+btnUpdate={cls="plus";text="更新服务器配置";left=687;top=753;right=856;bottom=784;align="left";bgcolor=11580047;db=1;dr=1;font=LOGFONT(h=-13);iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=22}};iconText='\uF0C7';notify=1;textPadding={left=40};z=5};
+editCoreConfig={cls="edit";left=9;top=29;right=902;bottom=739;db=1;dl=1;dr=1;dt=1;edge=1;hide=1;hscroll=1;multiline=1;vscroll=1;z=8};
+editHosts={cls="edit";left=9;top=29;right=902;bottom=739;db=1;dl=1;dr=1;dt=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=7};
+lbTip={cls="static";text="可在下面输入多行服务器分享链接，或JSON数组( 点击字段名会显示用法说明 )：";left=11;top=9;right=899;bottom=29;color=3947580;dl=1;dr=1;dt=1;font=LOGFONT(h=-13);transparent=1;z=6};
+navAdvancedConfig={cls="plus";text="端口 / 高级配置";left=315;top=750;right=449;bottom=782;border={top=1;color=-16744448};db=1;dl=1;z=9};
+navCoreConfig={cls="plus";text="Xray配置 ( JSON )";left=184;top=750;right=315;bottom=782;border={top=1;color=-16744448};db=1;dl=1;z=2};
+navOutbounds={cls="plus";text="服务器配置( JSON )";left=53;top=750;right=184;bottom=782;border={top=1;color=-16744448};db=1;dl=1;z=1};
+navRight={cls="plus";left=447;top=750;right=716;bottom=751;bgcolor=16777215;border={color=-16744448};db=1;dl=1;dr=1;forecolor=32768;linearGradient=180;z=3};
+plus={cls="plus";left=9;top=750;right=53;bottom=751;border={color=-16744448};db=1;dl=1;forecolor=32768;z=4}
+)
+/*}}*/
+
+import config;
+import hosts.configJson
+import web.json;
+import win.ui.tabs;
+
+var tbs = win.ui.tabs(frmConfig.navOutbounds, frmConfig.navCoreConfig)
+tbs.margin = 0
+
+tbs.skin({
+	foreground={
+		active=0xFFFFFFFF;
+		default=0x00FFFFFF;
+		hover=0xFFCCCCCC;
+	};
+	checked={
+		foreground={ 
+			default=0x00FFFFFF; 
+		};
+		border = { 
+			default = {left=1;right=1;bottom=1;color=0xFF008000} 
+		}; 
+	}
+});
+
+
+tbs.onSelchange = function(idx,strip,form){
+	if(idx==1){
+		frmConfig.editHosts.hide = false;
+		frmConfig.editCoreConfig.hide = true;
+		frmConfig.lbTip.text = `可在下面输入多行服务器分享链接，或JSON数组( 点击字段名会显示用法说明 )：`;
+		frmConfig.btnUpdate.text = "更新服务器配置";
+		frmConfig.btnUpdate.hide = false;
+	}
+	elseif(idx==2){
+		frmConfig.editHosts.hide = true;
+		frmConfig.editCoreConfig.hide = false;
+		frmConfig.lbTip.text = `其他的说明：`;
+		frmConfig.btnUpdate.text = "更新服务器配置";
+		frmConfig.btnUpdate.hide = false;	
+	}
+}
+
+tbs.selIndex = 1;
+
+
+// btnUpdate
+
+import style;
+frmConfig.btnUpdate.skin(style.primaryButton);
+
+var updateSqliteHostTable =  function() {
+	main.hosts.getHostsFromJsonConfig()
+}
+
+frmConfig.btnUpdate.oncommand = function( id,event ){
+	frmConfig.btnUpdate.disabledText = {'\uF254';'\uF251';'\uF252';'\uF253';'\uF250'};
+	// logic
+	
+	if(tbs.selIndex==1){
+		if(..string.match(frmConfig.editHosts.text,"%\[\]")){
+			var cfg,err = web.json.tryParse(frmConfig.editHosts.text);
+			if(!cfg){
+				frmConfig.editHosts.showErrorTip(,string.concat("JSON语法错误 ",err));
+				frmConfig.btnUpdate.disabledText = null;
+				return;
+			}
+			config.hosts = cfg: ..table.array();
+		}
+	}
+	else {
+		// 其他逻辑
+	}
+	frmConfig.editHosts.modified = false;
+	// 分发事件
+	publish("uiCommand.updateSqliteHostTable")  
+	
+	win.delay(500);
+	frmConfig.btnUpdate.disabledText = null;
+	// frmConfig.msgOk("配置已更新",1200);
+}
+
+// 设置弹出邮件菜单
+frmConfig.editHosts.enablePopMenu(function(){
+    
+    if(tbs.selIndex==1){
+        var strEditBounds = string.trim(frmConfig.editHosts.text);
+    	var menu = {}
+    	
+    	table.push(menu, {/*---分隔线---*/ } )
+	
+		table.push(menu, {"导入json配置文件"; function(id) {
+			import fsys.dlg;
+			var path = fsys.dlg.open("*.json|*.json||","打开 json 文件",,frmConfig);
+			if(path){
+				var hosts,err = web.json.tryParse(string.load(path));
+				if(!hosts){
+					frmConfig.editHosts.showErrorTip(,string.concat("JSON语法错误 ",err));
+					frmConfig.btnUpdate.disabledText = null;
+					return;
+				}
+				config.hosts = hosts: ..table.array();
+				frmConfig.editHosts.text = web.json.stringifyArray(hosts, true);
+				frmConfig.editHosts.modified = true;
+			}
+		}
+		})
+		
+		table.push(menu,{ "另存为配置文件(JSON)";
+			function(id){
+				import fsys.dlg;
+				var path = fsys.dlg.save("*.json|*.json||","另存为 json 文件",,frmConfig)
+				if(path){
+					var str = web.json.stringifyArray( 
+						config.hosts,true
+					)
+					
+					string.save(path,str )
+				}
+			} 
+		}); 
+		
+		table.push(menu,{ "清空服务器列表";
+			function(id){
+				winform.editHosts.text = "[]";
+				winform.editHosts.modified = true;
+			} 
+		}); 
+		
+		table.push(menu,{ /*---分隔线---*/ });
+		table.push(menu,{ "插入";{
+			{ "服务协议:type";
+				function(id){
+					frmConfig.editHosts.selText = '"type":"ssh",'
+				} 
+			};
+			{ "SSH端口:port";
+				function(id){
+					frmConfig.editHosts.selText = '"port": "22",'
+				} 
+			};
+			{ "服务器地址:server";
+				function(id){
+					frmConfig.editHosts.selText = '"server":"127.0.0.1",'
+				} 
+			};
+			{ "注释:note";
+				function(id){
+					frmConfig.editHosts.selText = '"note": "",'
+				} 
+			};
+		}}); 
+		
+		
+		table.push(menu, {/*---分隔线---*/ } )
+		
+		table.push(menu, {"从剪贴板粘贴配置"; function(id) {
+			var hosts = hosts.configJson.importFromClipboard();
+			if(#hosts){
+				var json = strEditBounds;
+				if( (!#json) || ..string.match(json,"%\[\]")){
+					var cfg, err = ..web.json.tryParse(strEditBounds);
+					if(!cfg){
+						frmConfig.editHosts.showErrorTip(,string.concat("当前配置存在JSON语法错误 ",err));
+						return;
+					}	
+					..table.append(cfg, hosts);
+					frmConfig.editHosts.text = ..web.json.stringifyArray(cfg,true);
+					frmConfig.editHosts.modified = true;
+				}
+			}
+		}
+		})
+		return menu;
+    }
+})
+
+
+// 注册事件
+
+subscribe("hosts.updateConfigJson.",function(...){
+	if(frmConfig.editHosts.modified){
+		return;
+	}
+	
+	frmConfig.editHosts.text = web.json.stringifyArray( 
+		config.hosts,true
+	)
+	
+	frmConfig.editHosts.modified = false;
+})
+// 初始化json配置
+frmConfig.editHosts.text = web.json.stringifyArray( 
+	config.hosts,true
+) : "[]"
+frmConfig.editHosts.modified = false;
+
+// 设置提示
+var editHostsTip = {
+	address = {"服务器地址";"值可以是域名或者IP地址"};
+	alterId = {"额外ID";"仅用于VMESS协议，与服务器一致即可"};
+	aid = {"额外ID(alterId)";"数值,仅用于VMESS协议，与服务器一致即可"};
+	network = {"传输协议(network)";"可选值为tcp,ws等"};
+	net = {"传输协议(network)";"可选值为tcp,ws等"};
+	type = {"伪装类型";"可选值为none,http等"}; 
+	ps = {"备注";"备注"}; 
+	tls = {"是否启用TLS";"可选值为tls,xtls或空值,vless协议省略时默认值为tls"}; 
+	path = {"请求路径";"用于ws,http等协议指定请求路径"}; 
+	id = {"密码";"服务器密码"}; 
+	host = {"主机名";"用于指定http,ws等协议请求头中的主机名"}; 
+	protocol = {"协议";"可选值为 vmess,vless,shadowsocks,trojan,trojan-go 之一"}; 
+	port = {"端口";"服务器端口,数值"}; 
+	security = {"加密方式";"可省略,vmess协议默认为auto,vless协议默认为none"};
+	sni = {"TLS服务器名";"TLS客户端请求中的服务器名字段,如果不指定则默认取host或address字段值。"}; 
+	flow = {"流控";"目前仅用于选择 XTLS 的算法,省略时默认值为xtls-rprx-direct"}; 
+	concurrency = {"Mux多路复用:最大并发连接数";"最小值1，最大值1024，特殊值-1，不加载mux模块。缺省由winXray根据连接协议自动设定此值。"}; 
+}
+
+// 设置文本框的窗口程序函数，如果鼠标左键抬起，定位到行，匹配字段到键值，显示消息
+frmConfig.editHosts.wndproc = function(hwnd,message,wParam,lParam){
+	if(message == 0x202/*_WM_LBUTTONUP*/){
+		var lineIndex = frmConfig.editHosts.lineFromChar();
+		if(lineIndex == frmConfig.editHosts.preLineIndex){
+			return; 
+		}
+		frmConfig.editHosts.preLineIndex = lineIndex;
+		
+		var line = frmConfig.editHosts.lineText();
+		// \s* 多个空格
+		// \"  双引号
+		// (\w+) 多个单词
+		// : 冒号
+		// (%"") 两个冒号
+		// (\d+) 对应ip地址
+		var n,v = string.match(line,`^\s*\"(\w+)\"\s*\:\s*(%"")[\,\s]*$`); 
+		if( !n ) n,v = string.match(line,`^\s*\"(\w+)\"\s*\:\s*(\d+)[\,\s]*$`);
+		
+		if(editHostsTip[n]){
+			frmConfig.editHosts.showInfoTip(editHostsTip[n][1],editHostsTip[n][2])
+		}
+	} 
+}
+
+frmConfig.editHosts.limit = 0;
+frmConfig.editCoreConfig.limit = 0;
+
+frmConfig.show();
+win.loopMessage();
+return frmConfig;

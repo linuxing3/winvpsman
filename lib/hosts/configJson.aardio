@@ -1,0 +1,107 @@
+﻿import config;
+import web.json;
+import inet.url;
+import crypt;
+import win.clip;
+
+namespace hosts.configJson;
+
+parseJson = function(jsonString){
+	var result, err = web.json.tryParse(jsonString);
+	if(!result){
+		return;
+	} else {
+		result = ..table.map(result,function(v,k,result){
+			if(v.uuid){
+				v.id = v.uuid
+				v.id = null
+				table.define(v)
+			}
+			return v;
+		})
+		return result;
+	}	
+}
+
+
+importFromClipboard  = function(){ 
+	var str = ..win.clip.read();
+	if(!str){ return; }
+	
+	return importFromString(str);
+}
+
+importFromString = function(str) {
+	if(!str){ return; }
+	str = ..string.trim(str);
+	
+	var jsonData;
+	
+	// 1. [] {} 格式的文件
+	if(..string.match(str,"%\[\]") || ..string.match(str,"%\{\}")){
+		jsonData = ..web.json.tryParse(str);
+	}
+	// 对普通数组格式直接使用
+	if( ..table.isArray(jsonData) ){  
+		return jsonData;
+	}
+	// 对aardio表格格式，对server字段进行处理
+	elseif( type(jsonData) == type.table ){ 
+		if( jsonData[["servers"]] ){
+
+			var servers = jsonData[["servers"]] 
+			var outbounds = ..table.array();
+			for i,v in ..table.eachIndex(servers){
+				// 定义哈希表
+				var outbound = ..table.assign(,v);
+				if(outbound.protocol === null){
+					outbound.protocol = "ssh"
+				}
+				
+				if(outbound.remarks){
+					outbound.note = outbound.remarks;
+					outbound.remarks = null;
+				}
+				
+				if(outbound.server){
+					outbound.address = outbound.server;
+					outbound.server = null;
+				}
+				
+				if(outbound.server_port){
+					outbound.port = outbound.server_port;
+					outbound.server_port = null;
+				}
+				
+				..table.push(outbounds,outbound);
+			}
+			
+			return outbounds;
+		}
+		else {
+			if(jsonData.address && jsonData.protocol && jsonData.port){
+				return {
+					jsonData
+				}	
+			} 
+		} 
+	}
+	
+	// 2. 如果从剪贴板粘贴特殊格式，先解码重新生成json格式 
+	if(..string.match(str,"^[\w=+/-_]+$")){
+		str = ..crypt.decodeBin(str);
+		if(!str) return;
+	}
+	var hosts = ..table.array()
+	for(line in ..string.lines(str)){
+		var ssh = ..string.match(line, `ssh\:\/\/([\w=+]+)`)
+		var host = ..web.json.tryParse(ssh);
+		if(host){
+			host.type = "ssh"
+		}
+		..table.push(hosts, host)
+	}
+	return hosts
+}
+
+

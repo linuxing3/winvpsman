@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project ver="10" name="hostorg" libEmbed="true" icon="app.ico" ui="win" output="hostorg.exe" CompanyName="winVps" FileDescription="hostorg" LegalCopyright="Copyright (C) winVps 2020" ProductName="hostorg" InternalName="hostorg" FileVersion="0.0.0.05" ProductVersion="0.0.0.05" publishDir="/dist/" dstrip="false" local="false">
+	<file name="main" path="main.aardio"/>
+	<folder name="窗体" path="forms" comment="" embed="true" local="false">
+		<folder name="main" path="forms\main" embed="true" comment="目录" local="false">
+			<file name="hosts.aardio" path="forms\main\hosts.aardio" comment="forms\main\frmPage1.aardio"/>
+			<file name="config.aardio" path="forms\main\config.aardio" comment="forms\main\frmPage2.aardio"/>
+			<file name="tools.aardio" path="forms\main\tools.aardio" comment="forms\main\frmPage3.aardio"/>
+		</folder>
+		<folder name="login" path="forms\login" embed="true" comment="目录" local="false"/>
+		<folder name="tools" path="forms\tools" embed="true" comment="目录" local="false">
+			<file name="youtube.aardio" path="forms\tools\youtube.aardio" comment="forms\tools\youtube.aardio"/>
+			<file name="tools.aardio" path="forms\tools\tools.aardio" comment="forms\tools\tools.aardio"/>
+		</folder>
+	</folder>
+</project>

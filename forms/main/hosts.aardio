@@ -1,0 +1,287 @@
+import win.ui;
+import win.ui.grid;
+import win.inputBox;
+import fonts.fontAwesome;
+/*DSG{{*/
+var frmhosts = win.form(text="winXray ";right=959;bottom=591;bgcolor=16777215)
+frmhosts.add(
+btnAdd={cls="plus";text="添加主机";left=789;top=441;right=895;bottom=471;align="left";db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=6};
+btnDelete={cls="plus";text="删除";left=70;top=530;right=178;bottom=560;db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=5};
+btnSave={cls="plus";text="保存";left=70;top=485;right=178;bottom=515;db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=4};
+btnXRayAction={cls="plus";text="执行命令";left=72;top=443;right=178;bottom=473;align="left";db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=2};
+editCommand={cls="edit";text="systemctl status xray";left=218;top=442;right=494;bottom=473;edge=1;font=LOGFONT(h=-16);z=8};
+editServer={cls="edit";left=555;top=442;right=750;bottom=473;edge=1;font=LOGFONT(h=-16);z=7};
+listview={cls="listview";left=4;top=5;right=954;bottom=425;db=1;dl=1;dr=1;dt=1;edge=1;editable=true;font=LOGFONT(h=-16);gridLines=1;z=1};
+plusSample={cls="plus";text="添加示例";left=790;top=508;right=898;bottom=538;db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=9};
+static={cls="static";text="server name or ip";left=558;top=511;right=799;bottom=539;color=255;font=LOGFONT(h=-16);transparent=1;z=3}
+)
+/*}}*/
+
+// 数据视图
+var grid = win.ui.grid(frmhosts.listview);//创建数据视图
+grid.readonlyColums = { [1] = true };//设置禁止编辑的列
+
+
+import config;
+import web.json;
+import string;
+// 使用sqlite3存储数据
+import sqlite;
+var db = sqlite("/hosts.db");
+
+var writeHostToJson = function(jsonPath){
+    var current = ..table.clone(config.hosts);
+    // 写入配置文件
+    ..string.save(jsonPath, ..web.json.stringify(current, true));
+	return jsonPath		
+}
+
+var makeSampleTable = function() {
+
+	// 插入示例数据
+	var cmd = db.prepare("INSERT INTO hosts VALUES (NULL,@type,@server,@port,@note);" );
+	for(i=1;5;1){
+    	var server = "x" + tostring(i) +  ".dongxishijie.xyz"
+		cmd.step(
+    		type = "ssh";
+    		server = server;
+    		port = "22";
+    		note = "vultr vps"
+ 		)
+	}
+	
+}
+
+var refresh = function(){
+    
+	//直接支持常用数据库的getTable函数返回的数据格式
+	var dataTable = db.getTable("SELECT * FROM [hosts] ");
+	
+	//直接让liswview控件显示数据库的查询结果
+	grid.setTable( dataTable );
+	
+	var current = ..table.clone(dataTable);
+	..string.save("/hosts/default-hosts.json", web.json.stringify(current));
+	
+}
+
+var deleteDb = function() {
+    //删除表 
+    db.exec("DROP TABLE @tablename", {
+		tablename = "hosts"
+	} );
+}
+
+var init = function(){
+	// 创建表
+	db.exec( "CREATE TABLE IF NOT EXISTS @tablename(id INTEGER PRIMARY KEY, type, server, port, note);",{
+    	tablename = "hosts"
+	} ) 
+	grid.setColumns({"ID";"类型";"服务器";"端口";"备注"})
+	refresh()
+}
+
+init()
+
+frmhosts.listview.onnotify = function(id,code,ptr){
+    
+    select(code) {
+    	case  0xFFFFFF9B/*_LVN_ITEMCHANGED*/ {
+    		// 更改了行或列
+    		var nm = frmhosts.listview.getNotifyMessage(code,ptr)
+    		if(frmhosts.listview.selIndex){
+        		frmhosts.static.text = frmhosts.listview.getItemText(nm.iItem,3) + ":" + frmhosts.listview.getItemText(nm.iItem,4)
+        	}
+    	}
+    	case 0xFFFFFF97/*_LVN_BEGINLABELEDIT*/ { 
+	 		return false; //允许编辑项
+	 	}
+	 	case 0xFFFFFF50/*_LVN_ENDLABELEDITW*/ {
+    		var hostInfo = frmhosts.listview.getNotifyDispInfo(code,ptr);
+    		
+    		if(hostInfo ? hostInfo.item.text ){
+    			
+    			frmhosts.static.text = hostInfo.item.text;
+    			frmhosts.listview.setItemText(hostInfo.item.text, hostInfo.item.iItem, hostInfo.item.iSubItem);
+    		}
+		 }
+    }
+    
+}
+
+frmhosts.btnXRayAction.skin(
+	background = { 
+		hover = "/res/images/btn-hover.png";
+		focus = "/res/images/btn-focus.jpg";
+		active = "/res/images/btn-active.png";
+		disabled = "/res/images/btn-disabled.png"; 
+	}
+)
+
+frmhosts.btnXRayAction.oncommand = function(id,event){
+	// using startXXXray flag
+	import fsys.wow64;
+    import process;
+    import console;
+    console.open();
+    
+    var prcs;
+    fsys.wow64.disableRedirection(
+    	function(){
+			var server = frmhosts.static.text;
+			if( ! ..string.indexOf(server,"@") ){
+    			server = "root@" + server;
+    		}
+    		var dest,port = string.match(server,"(.+)\:(\d+)");
+    		if(dest&&port){
+    			server = "-p" + port +" " + dest;
+    		}
+    		
+    		var command = frmhosts.editCommand.text;
+    		prcs = process("ssh", "-t " + server + " " + command)
+        	
+   			if(!prcs){
+   				if(_WIN10_LATER){
+   					import process.control; 
+					process.control("ms-settings:optionalfeatures");
+					console.log("请检查是否指定了正确的SSH端口,或尝试重新安装 OpenSSH.Client");
+   				}
+   				else {
+   					console.log("此功能仅支持 Windows 10 系统");
+   				} 
+   			}
+   			else {
+   				import process.job.limitKill;
+   				prcs.assignToJobObject(process.job.limitKill);	
+   				prcs.wait();
+   			}
+   			
+   			console.pause();
+    	}
+	)
+
+}
+
+frmhosts.btnSave.skin(
+	background = { 
+		hover = "/res/images/btn-hover.png";
+		focus = "/res/images/btn-focus.jpg";
+		active = "/res/images/btn-active.png";
+		disabled = "/res/images/btn-disabled.png"; 
+	}
+)
+
+frmhosts.btnSave.oncommand = function(id,event){
+		//改 - exec函数也可以用一个表添加简单的命名参数( 添加并过滤分隔符 )
+		var row = frmhosts.listview.selIndex;
+		
+		var id = frmhosts.listview.getItemText(row, 1)
+		var server = frmhosts.listview.getItemText(row, 3);
+		var port = frmhosts.listview.getItemText(row, 4);
+		var note = frmhosts.listview.getItemText(row, 5);
+		
+		//import console;
+    	//console.varDump(id);
+		
+		db.exec("UPDATE [hosts] SET server=@server, port=@port, note=@note WHERE id=@id;",{
+			server = server;
+			port = port;
+			note = note;
+			id = id;
+		});
+		refresh()
+}
+
+
+frmhosts.btnDelete.skin(
+	background = { 
+		hover = "/res/images/btn-hover.png";
+		focus = "/res/images/btn-focus.jpg";
+		active = "/res/images/btn-active.png";
+		disabled = "/res/images/btn-disabled.png"; 
+	}
+)
+
+frmhosts.btnDelete.oncommand = function(id,event){
+	var row = frmhosts.listview.selIndex;	
+	var id = frmhosts.listview.getItemText(row, 1)
+	db.exec("DELETE from hosts WHERE id = @id;",{
+			id = id;
+		} );
+	refresh()
+}
+
+frmhosts.btnAdd.skin(
+	background = { 
+		hover = "/res/images/btn-hover.png";
+		focus = "/res/images/btn-focus.jpg";
+		active = "/res/images/btn-active.png";
+		disabled = "/res/images/btn-disabled.png"; 
+	}
+)
+frmhosts.btnAdd.oncommand = function(id,event){
+	var server = frmhosts.editServer.text;
+	var cmd = db.prepare("INSERT INTO [hosts] VALUES (NULL,@type,@server,@port,@note);" );
+	cmd.step(
+    	type = "ssh";
+    	server = server;
+    	port = "22";
+    	note = "openwrt"
+ 	)
+	frmhosts.editServer.text = ""
+	refresh()
+}
+
+frmhosts.plusSample.skin(
+	background = { 
+		hover = "/res/images/btn-hover.png";
+		focus = "/res/images/btn-focus.jpg";
+		active = "/res/images/btn-active.png";
+		disabled = "/res/images/btn-disabled.png"; 
+	}
+)
+
+frmhosts.plusSample.oncommand = function(id,event){
+	var needSampleInput = win.inputBox();
+    needSampleInput.text = "是否创建示例数据？[y/n]";
+    var needSample = needSampleInput.doModal();
+    
+    if(needSample == "y"){
+    	makeSampleTable()
+    } else {
+    	print("不显示示例！")	
+    }
+    refresh()
+}
+
+
+// 监听事件并响应
+var getHostsFromJsonConfig = function() {
+
+	// 从json配置文件中插入示例数据
+	var cmd = db.prepare("INSERT INTO hosts VALUES (NULL,@type,@server,@port,@note);" );
+
+	if(type(config.hosts) == type.table){
+		for(_, host in config.hosts){
+
+			cmd.step(
+    			type = host.type;
+    			server = host.server;
+    			port = host.port;
+    			note = host.note
+ 			)
+		}
+	} else {
+		return 
+	}
+	
+	refresh()
+		
+}
+
+subscribe("uiCommand.updateSqliteHostTable",function() {
+	getHostsFromJsonConfig();
+})  
+
+frmhosts.show();
+win.loopMessage();
