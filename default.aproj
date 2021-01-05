@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<project ver="10" name="hostorg" libEmbed="true" icon="app.ico" ui="win" output="hostorg.exe" CompanyName="winVps" FileDescription="hostorg" LegalCopyright="Copyright (C) winVps 2020" ProductName="hostorg" InternalName="hostorg" FileVersion="0.0.0.05" ProductVersion="0.0.0.05" publishDir="/dist/" dstrip="false" local="false">
+<project ver="10" name="hostorg" libEmbed="true" icon="app.ico" ui="win" output="hostorg.exe" CompanyName="linuxing3" FileDescription="hostorg" LegalCopyright="Copyright (C) winVps 2020" ProductName="hostorg" InternalName="hostorg" FileVersion="0.0.0.05" ProductVersion="0.0.0.05" publishDir="/dist/" dstrip="false" local="false">
 	<file name="main" path="main.aardio"/>
 	<folder name="窗体" path="forms" comment="" embed="true" local="false">
 		<folder name="main" path="forms\main" embed="true" comment="目录" local="false">
@@ -11,6 +11,7 @@
 		<folder name="tools" path="forms\tools" embed="true" comment="目录" local="false">
 			<file name="youtube.aardio" path="forms\tools\youtube.aardio" comment="forms\tools\youtube.aardio"/>
 			<file name="tools.aardio" path="forms\tools\tools.aardio" comment="forms\tools\tools.aardio"/>
+			<file name="word.aardio" path="forms\tools\word.aardio" comment="forms\tools\word.aardio"/>
 		</folder>
 	</folder>
 </project>

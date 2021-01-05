@@ -9,10 +9,10 @@ btnAdd={cls="plus";text="添加主机";left=789;top=441;right=895;bottom=471;ali
 btnDelete={cls="plus";text="删除";left=70;top=530;right=178;bottom=560;db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=5};
 btnSave={cls="plus";text="保存";left=70;top=485;right=178;bottom=515;db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=4};
 btnXRayAction={cls="plus";text="执行命令";left=72;top=443;right=178;bottom=473;align="left";db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=2};
-editCommand={cls="edit";text="systemctl status xray";left=218;top=442;right=494;bottom=473;edge=1;font=LOGFONT(h=-16);z=8};
 editServer={cls="edit";left=555;top=442;right=750;bottom=473;edge=1;font=LOGFONT(h=-16);z=7};
-listview={cls="listview";left=4;top=5;right=954;bottom=425;db=1;dl=1;dr=1;dt=1;edge=1;editable=true;font=LOGFONT(h=-16);gridLines=1;z=1};
-plusSample={cls="plus";text="添加示例";left=790;top=508;right=898;bottom=538;db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=9};
+listboxCommand={cls="listbox";left=209;top=444;right=479;bottom=558;edge=1;items={};z=9};
+listview={cls="listview";left=4;top=5;right=954;bottom=425;db=1;dl=1;dr=1;dt=1;edge=1;font=LOGFONT(h=-16);gridLines=1;z=1};
+plusSample={cls="plus";text="添加示例";left=790;top=508;right=898;bottom=538;db=1;dr=1;font=LOGFONT(h=-13);frame=1;iconColor=8388608;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=12}};iconText='\uF1C4';notify=1;textPadding={left=30};z=8};
 static={cls="static";text="server name or ip";left=558;top=511;right=799;bottom=539;color=255;font=LOGFONT(h=-16);transparent=1;z=3}
 )
 /*}}*/
@@ -21,6 +21,59 @@ static={cls="static";text="server name or ip";left=558;top=511;right=799;bottom=
 var grid = win.ui.grid(frmhosts.listview);//创建数据视图
 grid.readonlyColums = { [1] = true };//设置禁止编辑的列
 
+var commandTable = {
+	{
+		name="start xray",
+		command="systemctl start xray" 
+	},
+	{
+		name="stop xray",
+		command="systemctl stop xray" 
+	},
+	{
+		name="status xray",
+		command="systemctl status xray" 
+	},
+	{
+		name="start trojan",
+		command="systemctl start trojan" 
+	},
+	{
+		name="stop trojan",
+		command="systemctl stop trojan" 
+	},
+	{
+		name="status trojan",
+		command="systemctl status trojan" 
+	},
+	{
+		name="start nginx",
+		command="systemctl start nginx" 
+	},
+	{
+		name="stop nginx",
+		command="systemctl stop nginx" 
+	},
+	{
+		name="status nginx",
+		command="systemctl status nginx" 
+	},
+	{
+		name="start caddy",
+		command="systemctl start caddy" 
+	},
+	{
+		name="stop caddy",
+		command="systemctl stop caddy" 
+	},
+}
+
+
+for(k,v in commandTable){
+    //import console
+    //console.varDump(v)
+	frmhosts.listboxCommand.add(v["command"])
+}
 
 import config;
 import web.json;
@@ -137,7 +190,7 @@ frmhosts.btnXRayAction.oncommand = function(id,event){
     			server = "-p" + port +" " + dest;
     		}
     		
-    		var command = frmhosts.editCommand.text;
+    		var command = frmhosts.listboxCommand.selText;
     		prcs = process("ssh", "-t " + server + " " + command)
         	
    			if(!prcs){
@@ -281,7 +334,16 @@ var getHostsFromJsonConfig = function() {
 
 subscribe("uiCommand.updateSqliteHostTable",function() {
 	getHostsFromJsonConfig();
-})  
+})
+
+frmhosts.listboxCommand.oncommand = function(id,event){
+	if( event == 0x1/*_LBN_SELCHANGE*/ ){
+				
+	}
+	if( event == 0x4/*_MOUSEEVENTF_LEFTUP*/){
+			
+	}
+}
 
 frmhosts.show();
 win.loopMessage();

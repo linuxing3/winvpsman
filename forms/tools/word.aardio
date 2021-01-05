@@ -1,0 +1,139 @@
+import win.ui;
+import win.ui.grid;
+/*DSG{{*/
+var winform = win.form(text="aardio form";right=759;bottom=469)
+winform.add(
+buttonStartWord={cls="button";text="打开word";left=560;top=372;right=686;bottom=417;z=1};
+listview={cls="listview";left=56;top=25;right=698;bottom=344;edge=1;z=2}
+)
+/*}}*/
+
+var grid = win.ui.grid(winform.listview);//创建数据视图
+/*
+grid.readonlyColums = { [1] = true };//设置禁止编辑的列
+*/
+var fileTable = {};
+
+var getFiles = function(){
+	//遍历目录
+	//import console;
+	import fsys;
+ 	
+	//批量处理文件
+	fsys.enum(  "D:\Dropbox\Documents\模板\使用中", //指定要遍历的目录
+				"*.xlsm", //指定查询文件名,支持windows掩码
+				function(dir,filename,fullpath,findData){ //指定触发器
+					if(filename){ 
+           				//console.log("发现文件：",fullpath )
+           				..table.push(fileTable, {
+           					path=fullpath,
+           					name=filename
+           				})
+					}
+					else{
+						//console.log("发现目录：",dir)
+					}
+				} 
+		  	); 
+	//console.log(..table.len(fileTable))
+	//console.varDump(fileTable);
+	
+	//execute("pause")
+}
+
+
+var initBookmarks = function(){
+	import com;
+	import console;
+	
+	var bookmarkTable = {};
+		
+	// console.open();
+	word = com.CreateObject("Word.Application"); 
+	//com.DumpTypeInfo(word); //输出所有成员
+	word.visible = true;
+	doc = word.Documents.Open("D:\workspace\hostorg\test.docx");
+	
+	doc.content.Paragraphs.Add();
+
+	doc.Bookmarks.add("name");
+	doc.Bookmarks("name").Range.InsertAfter("this is my name");
+	
+	doc.content.Paragraphs.Add();
+
+	doc.Bookmarks.add("title");
+	doc.Bookmarks("title").Range.InsertAfter("this is my title");
+}
+
+var loadBookmarks = function(){
+	import com;
+	import console;
+	
+	// console.open();
+	word = com.CreateObject("Word.Application"); 
+	//com.DumpTypeInfo(word); //输出所有成员
+	word.visible = true;
+	doc = word.Documents.Open("D:\workspace\hostorg\test.docx");
+	
+	for(i=1;doc.bookmarks.Count;1){
+		
+		winform.listview.addItem( { 
+			text={i; doc.bookmarks.Item(i).Name;doc.bookmarks.Item(i).Range.Text};
+		})	
+	
+	}
+		
+	// execute("pause")
+	// doc.close();
+	word.Quit();
+}
+
+winform.listview.onnotify = function(id,code,ptr){ 
+    
+    select(code) {
+    	case  0xFFFFFF9B/*_LVN_ITEMCHANGED*/ {
+    		var nm = winform.listview.getNotifyMessage(code,ptr)
+    		if(winform.listview.selIndex){
+				// your logic
+        	}
+    	}
+    	case 0xFFFFFFFD/*_NM_DBLCLK*/  {
+			var nm = winform.listview.getNotifyMessage(code,ptr)
+			if(winform.listview.selIndex){
+				// import console;
+				//console.varDump(nm);
+				var filePath = winform.listview.getItemText(nm.iItem,3);
+				// console.log(filePath)
+				import com.excel; 
+				var excel;
+				try { 
+					excel = com.excel() 
+				}
+				if( !excel ) error("该示例需要安装EXCEL",2)
+				
+				excel.alerts = false; //关闭所有操作提示
+				var wb = excel.Open(filePath) //创建工作簿
+				excel.Visible = true; //使Excel窗口可见
+        	}
+    	}
+    }
+    
+}
+
+winform.buttonStartWord.oncommand = function(id,event){
+    grid.setColumns({"ID","Name";"Path"});
+	getFiles();
+	for(k,v in fileTable){
+    	//import console
+    	//console.varDump(v)
+		winform.listview.addItem( { 
+			text={k;v["name"];v["path"]};
+		})
+		
+	}
+	
+}
+
+winform.show();
+win.loopMessage();
+return winform;
