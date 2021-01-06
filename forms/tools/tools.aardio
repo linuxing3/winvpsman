@@ -6,6 +6,7 @@ frmTools.add(
 btnAardio={cls="plus";text="aardio 桌面软件快速开发（ 开发环境仅 6.5MB ）";left=27;top=433;right=461;bottom=475;align="left";color=3947580;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-27;name='FontAwesome');padding={left=18}};iconText='\uF17A';notify=1;textPadding={left=50};z=3};
 btnCreateLnk={cls="plus";text="创建桌面图标";left=27;top=136;right=270;bottom=178;align="left";color=3947580;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-23;name='FontAwesome');padding={left=18}};iconText='\uF108';notify=1;textPadding={left=50};z=11};
 btnDnsFlush={cls="plus";text="清空DNS缓存";left=27;top=235;right=413;bottom=277;align="left";color=3947580;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-27;name='FontAwesome');padding={left=18}};iconText='\uF021';notify=1;textPadding={left=50};z=5};
+btnExcelToWord={cls="plus";text="word报表工具";left=400;top=285;right=636;bottom=327;align="left";color=3947580;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-27;name='FontAwesome');padding={left=18}};iconText='\uF167';notify=1;textPadding={left=50};z=13};
 btnGitHub={cls="plus";text="github 网速优化";left=27;top=334;right=263;bottom=376;align="left";color=3947580;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-27;name='FontAwesome');padding={left=18}};iconText='\uF09B';notify=1;textPadding={left=50};z=2};
 btnSshInstall={cls="plus";text="一键安装 Xray 服务端";left=393;top=33;right=601;bottom=75;align="left";color=3947580;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-27;name='FontAwesome');padding={left=11}};iconText='\uF17C';notify=1;textPadding={left=40};z=10};
 btnSshInstallKey={cls="plus";text="安装SSH密钥";left=606;top=34;right=755;bottom=76;align="left";color=3947580;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-24;name='FontAwesome');padding={left=11}};iconText='\uF084';notify=1;textPadding={left=40};z=12};
@@ -178,6 +179,28 @@ frmTools.btnCreateLnk.oncommand = function(id,event){
 	
 	import com;
 	com.CreateObject("Shell.Application").MinimizeAll();
+}
+
+frmTools.btnExcelToWord.skin(
+	background = { 
+		hover = "/res/images/btn-hover.png";
+		focus = "/res/images/btn-focus.jpg";
+		active = "/res/images/btn-active.png";
+		disabled = "/res/images/btn-disabled.png"; 
+	}
+)
+frmTools.btnExcelToWord.oncommand = function(id,event){
+	if(frmExplorer&&win.isWindow(frmExplorer.hwnd)){
+		if(win.isIconic(frmExplorer.hwnd)){
+			frmExplorer.show(9/*_SW_RESTORE*/);	
+		}
+		
+		frmExplorer.show();
+		return;
+	}
+	
+	frmExplorer = frmTools.loadForm("\forms\tools\explorer.aardio");
+	frmExplorer.show();
 }
 
 frmTools.enableDpiScaling();

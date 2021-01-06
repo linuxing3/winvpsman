@@ -3,8 +3,8 @@ import win.ui.grid;
 /*DSG{{*/
 var winform = win.form(text="aardio form";right=759;bottom=469)
 winform.add(
-buttonStartWord={cls="button";text="打开word";left=560;top=372;right=686;bottom=417;z=1};
-listview={cls="listview";left=56;top=25;right=698;bottom=344;edge=1;z=2}
+buttonStartWord={cls="button";text="打开文件";left=568;top=400;right=694;bottom=445;z=1};
+listview={cls="listview";left=23;top=22;right=236;bottom=411;edge=1;z=2}
 )
 /*}}*/
 
@@ -12,13 +12,13 @@ var grid = win.ui.grid(winform.listview);//创建数据视图
 /*
 grid.readonlyColums = { [1] = true };//设置禁止编辑的列
 */
-var fileTable = {};
+
 
 var getFiles = function(){
 	//遍历目录
 	//import console;
 	import fsys;
- 	
+ 	var fileTable = {};
 	//批量处理文件
 	fsys.enum(  "D:\Dropbox\Documents\模板\使用中", //指定要遍历的目录
 				"*.xlsm", //指定查询文件名,支持windows掩码
@@ -37,8 +37,39 @@ var getFiles = function(){
 		  	); 
 	//console.log(..table.len(fileTable))
 	//console.varDump(fileTable);
-	
+	return fileTable
 	//execute("pause")
+}
+
+
+var getRowData = function(filePath, sheetName, row){
+	//com.excel库范例
+	import com.excel; 
+	var excel;
+	try { 
+		excel = com.excel() 
+	}
+	if( !excel ) error("该示例需要安装EXCEL",2)
+	
+	//excel.Visible = true; //使Excel窗口可见
+	excel.alerts = false; //关闭所有操作提示
+	
+ 	
+	var book = excel.Open(filePath) //创建工作簿
+	var sheet = excel.ActiveWorkbook.Sheets(sheetName);
+	
+	var rowData = {};
+
+	for column=1;12 begin
+  		..table.push(rowData, {
+  			fieldName=sheet.Cells(1, column).Value,
+  			text=sheet.Cells(row, column).Value
+  		})
+	end
+
+	
+	excel.Quit(); //退出
+	return rowData;
 }
 
 
@@ -122,7 +153,7 @@ winform.listview.onnotify = function(id,code,ptr){
 
 winform.buttonStartWord.oncommand = function(id,event){
     grid.setColumns({"ID","Name";"Path"});
-	getFiles();
+	var fileTable = getFiles();
 	for(k,v in fileTable){
     	//import console
     	//console.varDump(v)

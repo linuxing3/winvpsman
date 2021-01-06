@@ -1,0 +1,79 @@
+﻿
+namespace db{
+	// 使用sqlite3存储数据
+	import sqlite;
+	tablename = ""
+	
+	fields = {}
+	
+	db = null
+	
+	setDb = function(dir){
+		 db = sqlite(dir + "/" + tablename + ".db");
+	}
+	
+	getDb = function(){
+		return db;
+	}
+	
+	
+    deleteDb = function() {
+    	//删除表 
+    	db.exec("DROP TABLE @tablename", {
+			tablename = tablename
+		} );
+	}
+
+	createDb = function(){
+		// 创建表
+		var strFields = ..string.join(fields, ","); // name, work, ...
+		// "CREATE TABLE IF NOT EXISTS @tablename(id INTEGER PRIMARY KEY, type, server, port, note);"
+		var strSql = "CREATE TABLE IF NOT EXISTS @tablename(id INTEGER PRIMARY KEY, "
+		strSql = strSql + strFields + ");"
+		db.exec( strSql, {
+    		tablename = tablename
+		} ) 
+	}
+	
+	findAll = function(){
+		var strSql = "SELECT * FROM [" + tablename + "];";
+		var dataTable = db.getTable(strSql)	
+	}
+	
+
+	update = function(data){
+		// data = { id="", name="" }
+		// "UPDATE [hosts] SET server=@server, port=@port, note=@note WHERE id=@id;"
+		var strFields = ""
+		for(_,v in ..table.keys(data)){
+			strFields = v + "=@" + v + ","
+		}
+		strFields =  ..string.left(strFields, ..string.len(strFields) - 1)
+		
+		var strSql = "UPDATE [" + tablename + "] SET " + strFields + " WHERE id=@id;";
+		db.exec(strSql, data);
+	}
+	
+	insert = function(data){
+		// "INSERT INTO [hosts] VALUES (NULL,@type,@server,@port,@note);"
+		var strFields = ""
+		for(_,v in ..table.keys(data)){
+			strFields = "@" + v + ","
+		}
+		strFields =  ..string.left(strFields, ..string.len(strFields) - 1)
+		
+		var strSql = "INSERT INTO [" + tablename + "] VALUES (NULL," + strFields + ");"
+		
+		var cmd = db.prepare( strSql );
+		cmd.step(data)
+	}
+	
+	delete = function(id){
+		
+		var strSql = "DELETE FROM " + tablename + " WHERE id=@id";
+		db.exec(strSql,{
+			id = id;
+		} );	
+	}
+	
+}
